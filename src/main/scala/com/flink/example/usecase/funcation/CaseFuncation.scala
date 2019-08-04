@@ -1,6 +1,9 @@
 package com.flink.example.usecase.funcation
 
 import org.apache.flink.api.common.functions.AggregateFunction
+import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
+import org.apache.flink.util.Collector
 
 object CaseFuncation {
 
@@ -24,4 +27,15 @@ object CaseFuncation {
     override def merge(acc: (Int, Int), acc1: (Int, Int)): (Int, Int) = (acc._1 + acc1._1, acc._2 + acc1._2)
   }
 
+  class GameSummary extends ProcessWindowFunction[(String,Int),(String, Int, Int, Int, Int, Long), String, TimeWindow] {
+    override def process(key: String, context: Context, elements: Iterable[(String, Int)], out: Collector[(String, Int, Int, Int, Int, Long)]): Unit = {
+
+      val sum = elements.map(_._2).sum
+      val max = elements.map(_._2).max
+      val min = elements.map(_._2).min
+      var avg = sum / elements.size
+      val windowEnd = context.window.getEnd
+      out.collect((key,min,max,sum,avg, windowEnd))
+    }
+  }
 }

@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 import com.alibaba.fastjson.JSON
 import com.flink.example.usecase.CaseUtil.GamePlay
-import com.flink.example.usecase.funcation.CaseFuncation.GameAvgTime
+import com.flink.example.usecase.funcation.CaseFuncation.{GameAvgTime, GameSummary}
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.table.functions.AggregateFunction
@@ -75,6 +75,11 @@ object WindowEtlKafka2KafkaJob {
       .map(kv => String.format("%s", kv))
     gameAvgTimeStream.addSink(kafkaProducer)
 
+    /*val gameSummaryStream = etlSteam.map(gamePlay => (gamePlay.gameId, gamePlay.timeLen)).keyBy(0)
+        .window(TumblingEventTimeWindows.of(Time.minutes(10)))
+        .aggregate(new GameSummary)
+
+*/
     env.execute()
   }
 }
