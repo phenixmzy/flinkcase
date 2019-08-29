@@ -90,7 +90,7 @@ public class OrcFileWriter<T extends Row> extends StreamWriterBase<T> {
   public void open(FileSystem fs, Path path) throws IOException {
     writer = OrcFile.createWriter(path, OrcFile.writerOptions(fs.getConf()).setSchema(schema).compress(compressionKind));
     rowBatch = schema.createRowBatch();
-    orcBatchWriter = new OrcBatchWriter(Arrays.asList(orcSchemaToTableSchema(schema).getTypes()));
+    //orcBatchWriter = new OrcBatchWriter(Arrays.asList(orcSchemaToTableSchema(schema).getTypes()));
   }
 
   private TableSchema orcSchemaToTableSchema(TypeDescription orcSchema) {

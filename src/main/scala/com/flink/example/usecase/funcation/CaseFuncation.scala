@@ -18,7 +18,7 @@ object CaseFuncation {
   }
 
   class GameAvgTime extends AggregateFunction[(String, Int), (Int, Int), Float] {
-    override def createAccumulator(): (Long, Long) = (0L, 0L)
+    override def createAccumulator(): (Int, Int) = (0, 0)
 
     override def add(in: (String, Int), acc: (Int, Int)): (Int, Int) = (acc._1 + in._2, acc._2 + 1)
 
