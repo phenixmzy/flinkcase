@@ -57,8 +57,7 @@ object WindowEtlKafka2KafkaJob {
         val userId = json.getString("user_id")
         val startTime = json.getIntValue("start_time")
         val leave_time = json.getIntValue("leave_time")
-        val sleep = json.getIntValue("sleep")
-        val timeLen = leave_time - startTime - sleep
+        val timeLen = leave_time - startTime
         val userIp = json.getString("user_ip")
         GamePlay(gameId, userId, gameType, startTime, timeLen, userIp)
       })
@@ -67,16 +66,14 @@ object WindowEtlKafka2KafkaJob {
       .map(gamePlay => (gamePlay.gameId, 1)).keyBy(0)
       .window(TumblingEventTimeWindows.of(Time.seconds(10)))
       .reduce({ (v1, v2) => (v1._1, v1._2 + v2._2) })
-      .map(kv => {
-        val outputStr = String.format("%s %s", kv._1, kv._2.toString)
-        outputStr
-      })
+      .map(item => item.toString())
+
     gamePlayCountStream.addSink(kafkaProducer)
 
     val gameAvgTimeStream = etlSteam.map(gamePlay => (gamePlay.gameId, gamePlay.timeLen)).keyBy(0)
         .window(TumblingEventTimeWindows.of(Time.minutes(10)))
       .aggregate(new GameAvgTime)
-      .map(kv => String.format("%s", kv.toString))
+      .map(kv => kv.toString)
     gameAvgTimeStream.addSink(kafkaProducer)
 
     /*val gameSummaryStream = etlSteam.map(gamePlay => (gamePlay.gameId, gamePlay.timeLen)).keyBy(0)

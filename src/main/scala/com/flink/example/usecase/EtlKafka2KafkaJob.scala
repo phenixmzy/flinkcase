@@ -68,8 +68,7 @@ object EtlKafka2KafkaJob {
         val gameType = json.getString("game_type")
         val startTime = json.getIntValue("start_time")
         val leave_time = json.getIntValue("leave_time")
-        val sleep = json.getIntValue("sleep")
-        val timeLen = leave_time - startTime - sleep
+        val timeLen = leave_time - startTime
         val userIp = json.getString("user_ip")
         (gameId, userId, gameType, startTime, timeLen, userIp)
       })
