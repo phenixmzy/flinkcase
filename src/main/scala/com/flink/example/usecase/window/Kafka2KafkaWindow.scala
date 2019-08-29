@@ -73,8 +73,9 @@ object Kafka2KafkaWindow {
       val json = JSON.parseObject(jsonContent)
       val gameId = json.getString("game_id")
       val startTime = json.getIntValue("start_time")
-      val end_time = json.getIntValue("end_time")
-      val timeLen = end_time - startTime
+      val leave_time = json.getIntValue("leave_time")
+      val sleep = json.getIntValue("sleep")
+      val timeLen = leave_time - startTime - sleep
       (gameId, timeLen)
     })
 
