@@ -24,7 +24,6 @@ object Kafka2KafkaWindow {
     // set up the streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.getConfig.disableSysoutLogging()
     env.getConfig.setRestartStrategy(RestartStrategies.fixedDelayRestart(4, 10000))
 
@@ -59,6 +58,7 @@ object Kafka2KafkaWindow {
 
     val inputTopic = params.getRequired("input-topic")
     val outputTopic = params.getRequired("output-topic")
+    val isNoKey = params.getRequired("is-nokey")
     //val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, params.getProperties)
     //val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
     //val sourceStream = env.addSource(kafkaConsumer)
@@ -78,11 +78,18 @@ object Kafka2KafkaWindow {
       (gameId, timeLen)
     })
 
-    gamePlayStream.keyBy(0)
-      .timeWindow(Time.of(300,SECONDS), Time.of(300, SECONDS))
-      .reduce((value1, value2) => (value1._1, value1._2 + value2._2))
-      .map(item => item.toString())
-      .addSink(kafkaProducer)
+    if (isNoKey.equals("nokey")) {
+      gamePlayStream.timeWindowAll(Time.minutes(5), Time.minutes(5))
+        .reduce((value1, value2) => (value1._1, value1._2 + value2._2))
+        .map(item => "noKey-"+item.toString())
+        .addSink(kafkaProducer)
+    } else {
+      gamePlayStream.keyBy(0)
+        .timeWindow(Time.of(300,SECONDS), Time.of(300, SECONDS))
+        .reduce((value1, value2) => (value1._1, value1._2 + value2._2))
+        .map(item => "keyBy-"+item.toString())
+        .addSink(kafkaProducer)
+    }
 
     env.execute()
   }
