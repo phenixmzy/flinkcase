@@ -50,7 +50,7 @@ under the License.
         <fastjson.version>1.2.7</fastjson.version>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>2.11.12</scala.version>
-        <confluent.version>4.1.1</confluent.version>
+        <!--<confluent.version>4.1.1</confluent.version>-->
         <lzo.version>0.4.15-gplextras5.0.0</lzo.version>
         <parquet.version>1.10.0</parquet.version>
         <orc.version>1.5.2</orc.version>
@@ -201,11 +201,13 @@ under the License.
             <version>${log4j.version}</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${confluent.version}</version>
         </dependency>
+        -->
         <dependency>
             <groupId>org.apache.orc</groupId>
             <artifactId>orc-core</artifactId>

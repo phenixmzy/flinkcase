@@ -67,10 +67,10 @@ object EtlKafka2KafkaJob {
         val userId = json.getString("user_id")
         val gameType = json.getString("game_type")
         val startTime = json.getIntValue("start_time")
-        val leave_time = json.getIntValue("leave_time")
-        val timeLen = leave_time - startTime
+        val leaveTime = json.getIntValue("leave_time")
+        val timeLen = leaveTime - startTime
         val userIp = json.getString("user_ip")
-        (gameId, userId, gameType, startTime, timeLen, userIp)
+        (gameId, userId, gameType, startTime, leaveTime, timeLen, userIp)
       })
 
     messageStream.map(item => item.toString()).addSink(kafkaProducer)
