@@ -31,8 +31,9 @@ object WindowEtlKafka2KafkaJob {
     return env
   }
 
-  def executor(array: Array[String]): Unit = {
-    val params = ParamsAndPropertiesUtil.getKafkaParamsAndProperties(array)
+  def executor(args: Array[String]): Unit = {
+    val params = ParameterTool.fromArgs(args)
+    ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
     if (params.getNumberOfParameters < 6) {
       println("Missing parameters!\n"
         + "Usage: Kafka --input-topic <topic> --bootstrap.servers <kafka brokers> --group.id <some id> " +

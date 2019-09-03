@@ -61,7 +61,7 @@ object GamePlayEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    val kafkaParms = ParamsAndPropertiesUtil.getKafkaParamsAndProperties(args)
+    ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
     if (params.getNumberOfParameters < 4) {
       println("Missing parameters!\n"
         + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic> --task-num <num> --window-size <window-size>"
@@ -74,7 +74,7 @@ object GamePlayEventTimeWindow {
     val isNoKey = params.getRequired("is-nokey")
 
     val env = setEvn(params)
-    val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaParms.getProperties)
+    val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
     val windowSize = params.getRequired("window-size").toInt
     import org.apache.flink.api.scala._
     val sourceStream = env.addSource(new SourceFunction[GamePlay]() {

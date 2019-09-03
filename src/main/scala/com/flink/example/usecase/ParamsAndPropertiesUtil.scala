@@ -7,8 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 
 object ParamsAndPropertiesUtil {
-  def getKafkaParamsAndProperties(args:Array[String]): ParameterTool = {
-    val params = ParameterTool.fromArgs(args)
+  def loadKafkaParamsAndProperties(params: ParameterTool) = {
     // config consumer
     params.getProperties.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG,"524288000")
     params.getProperties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,"60000")
@@ -31,6 +30,6 @@ object ParamsAndPropertiesUtil {
 
     params.getProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     params.getProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    params
+    System.out.println("params.getProperties=" + params.getProperties.size())
   }
 }
