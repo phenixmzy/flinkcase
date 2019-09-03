@@ -61,11 +61,11 @@ object GamePlayEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParamsAndPropertiesUtil.getKafkaParamsAndProperties(args)
-    if (params.getNumberOfParameters < 5) {
+    if (params.getNumberOfParameters < 4) {
       println("Missing parameters!\n"
-        + "Usage: Kafka --bootstrap.servers <kafka brokers> --group.id <some id> " +
-        "--output-topic <topic> --task-num <num> --window-size"
+        + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic> --task-num <num> --window-size <window-size>"
       )
+      println(params.toString)
       return
     }
 
