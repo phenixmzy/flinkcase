@@ -61,23 +61,20 @@ object GamePlayEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParamsAndPropertiesUtil.getKafkaParamsAndProperties(args)
-    if (params.getNumberOfParameters < 6) {
+    if (params.getNumberOfParameters < 5) {
       println("Missing parameters!\n"
-        + "Usage: Kafka --input-topic <topic> --bootstrap.servers <kafka brokers> --group.id <some id> " +
-        "--zookeeper.connect <zk quorum> --output-topic <topic> --task-num <num> "
+        + "Usage: Kafka --bootstrap.servers <kafka brokers> --group.id <some id> " +
+        "--output-topic <topic> --task-num <num> --window-size"
       )
       return
     }
 
     val outputTopic = params.getRequired("output-topic")
     val isNoKey = params.getRequired("is-nokey")
-    //val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, params.getProperties)
-    //val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
-    //val sourceStream = env.addSource(kafkaConsumer)
 
     val env = setEvn(params)
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
-
+    val windowSize = params.getRequired("window-size").toInt
     import org.apache.flink.api.scala._
     val sourceStream = env.addSource(new SourceFunction[GamePlay]() {
       val num = 1000;
@@ -146,7 +143,7 @@ object GamePlayEventTimeWindow {
         .addSink(kafkaProducer)
     } else {
       gamePlayStream.keyBy(0)
-        .timeWindow(Time.of(300,SECONDS), Time.of(300, SECONDS))
+        .timeWindow(Time.of(windowSize,SECONDS), Time.of(windowSize, SECONDS))
         .reduce((value1, value2) => (value1._1, value1._2 + value2._2))
         .map(item => "keyBy-"+item.toString())
         .addSink(kafkaProducer)
