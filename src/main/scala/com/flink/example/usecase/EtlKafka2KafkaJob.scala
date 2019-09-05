@@ -63,19 +63,19 @@ object EtlKafka2KafkaJob {
 
     val sourceStream = env.addSource(new SourceFunction[GamePlay]() {
       val num = 1000;
-      @Transient lazy val gameIdRand = new Random(100000)
-      @Transient lazy val userIdRand = new Random(10000000)
-      @Transient lazy val delayRand = new Random(300)
-      @Transient lazy val playTimeLenRand = new Random(300)
+      @Transient lazy val gameIdRand = new Random()
+      @Transient lazy val userIdRand = new Random()
+      @Transient lazy val delayRand = new Random()
+      @Transient lazy val playTimeLenRand = new Random()
 
       var isRunning:Boolean = true
 
       def getGamePlay() : GamePlay = {
-        val gameId = gameIdRand.nextInt().toString
-        val userId = userIdRand.nextInt().toString
+        val gameId = gameIdRand.nextInt(100000).toString
+        val userId = userIdRand.nextInt(10000000).toString
         val currTimeStamp = System.currentTimeMillis()/1000
-        val delay = delayRand.nextInt()
-        val timeLen = playTimeLenRand.nextInt()
+        val delay = delayRand.nextInt(300)
+        val timeLen = playTimeLenRand.nextInt(300)
         val leaveTime = currTimeStamp.toInt - delay;
         val startTime = leaveTime - timeLen
         GamePlay(gameId, userId, startTime, leaveTime,timeLen, "127.0.0.1")
