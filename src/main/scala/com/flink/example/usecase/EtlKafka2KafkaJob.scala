@@ -1,6 +1,9 @@
 package com.flink.example.usecase
 
+import java.beans.Transient
+
 import com.alibaba.fastjson.JSON
+import com.flink.example.usecase.CaseUtil.GamePlay
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
@@ -8,6 +11,10 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 import org.apache.flink.streaming.api.scala.createTypeInformation
 import org.apache.flink.streaming.api.CheckpointingMode
+import org.apache.flink.streaming.api.functions.source.SourceFunction
+import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
+
+import scala.util.Random
 
 object EtlKafka2KafkaJob {
   val ONE_SECONDS = 1000L
@@ -44,39 +51,51 @@ object EtlKafka2KafkaJob {
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
     ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
-    if (params.getNumberOfParameters < 6) {
+    if (params.getNumberOfParameters < 3) {
       println("Missing parameters!\n"
-        + "Usage: Kafka --input-topic <topic> --bootstrap.servers <kafka brokers> --group.id <some id> " +
-        "--zookeeper.connect <zk quorum> --output-topic <topic> --task-num <num> "
+        + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic> --task-num <num> "
       )
       return
     }
     val env = setEvn(params)
-
-    val inputTopic = params.getRequired("input-topic")
     val outputTopic = params.getRequired("output-topic")
-    val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, params.getProperties)
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
 
-    val sourceStream = env.addSource(kafkaConsumer)
-    val messageStream = sourceStream
-      .filter(item => item != None)
-      .flatMap(item => Some(item).get)
-      .map(jsonStr => {
-        val json = JSON.parseObject(jsonStr.toString)
-        val gameId = json.getString("game_id")
-        val userId = json.getString("user_id")
-        val gameType = json.getString("game_type")
-        val startTime = json.getIntValue("start_time")
-        val leaveTime = json.getIntValue("leave_time")
-        val timeLen = leaveTime - startTime
-        val userIp = json.getString("user_ip")
-        (gameId, userId, gameType, startTime, leaveTime, timeLen, userIp)
-      })
+    val sourceStream = env.addSource(new SourceFunction[GamePlay]() {
+      val num = 1000;
+      @Transient lazy val gameIdRand = new Random(100000)
+      @Transient lazy val userIdRand = new Random(10000000)
+      @Transient lazy val delayRand = new Random(300)
+      @Transient lazy val playTimeLenRand = new Random(300)
 
-    messageStream.map(item => item.toString()).addSink(kafkaProducer)
+      var isRunning:Boolean = true
+
+      def getGamePlay() : GamePlay = {
+        val gameId = gameIdRand.nextInt().toString
+        val userId = userIdRand.nextInt().toString
+        val currTimeStamp = System.currentTimeMillis()/1000
+        val delay = delayRand.nextInt()
+        val timeLen = playTimeLenRand.nextInt()
+        val leaveTime = currTimeStamp.toInt - delay;
+        val startTime = leaveTime - timeLen
+        GamePlay(gameId, userId, startTime, leaveTime,timeLen, "127.0.0.1")
+      }
+
+      override def run(ctx: SourceContext[GamePlay]) = {
+        while (isRunning) {
+          Thread.sleep(10)
+          for (carId <- 0 until num) {
+            ctx.collect(getGamePlay)
+          }
+        }
+      }
+
+      override def cancel(): Unit = isRunning = false
+    }).uid("create-data-gameplay")
+
+    sourceStream.map(item => item.toString()).uid("gameplay-data-to-string").addSink(kafkaProducer)
 
     // execute program
-    env.execute("DataCollect-SDK")
+    env.execute("DataCollect-GamePlay")
   }
 }

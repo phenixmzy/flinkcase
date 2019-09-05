@@ -30,6 +30,11 @@ object ParamsAndPropertiesUtil {
 
     params.getProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     params.getProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+
+    params.getProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, params.getRequired("bootstrap.servers"))
+
+    params.getProperties.put(ConsumerConfig.GROUP_ID_CONFIG, params.get("group.id"))
+
     System.out.println("params.getProperties=" + params.getProperties.size())
   }
 }
