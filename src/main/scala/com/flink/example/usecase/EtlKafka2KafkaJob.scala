@@ -4,6 +4,7 @@ import java.beans.Transient
 
 import com.alibaba.fastjson.JSON
 import com.flink.example.usecase.CaseUtil.GamePlay
+import com.flink.example.usecase.TestRandom.{delayRand, playTimeLenRand}
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
@@ -76,9 +77,9 @@ object EtlKafka2KafkaJob {
         val currTimeStamp = System.currentTimeMillis()/1000
         val delay = delayRand.nextInt(300)
         val timeLen = playTimeLenRand.nextInt(300)
-        val leaveTime = currTimeStamp.toInt - delay;
+        val leaveTime = currTimeStamp - delay;
         val startTime = leaveTime - timeLen
-        GamePlay(gameId, userId, startTime, leaveTime,timeLen, "127.0.0.1")
+        GamePlay(gameId, userId, startTime, leaveTime, timeLen, "127.0.0.1")
       }
 
       override def run(ctx: SourceContext[GamePlay]) = {

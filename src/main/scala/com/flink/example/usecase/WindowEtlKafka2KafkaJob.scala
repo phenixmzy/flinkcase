@@ -56,11 +56,11 @@ object WindowEtlKafka2KafkaJob {
         val gameId = json.getString("game_id")
         val gameType = json.getString("game_type")
         val userId = json.getString("user_id")
-        val startTime = json.getIntValue("start_time")
-        val leaveTime = json.getIntValue("leave_time")
+        val startTime = json.getLongValue("start_time")
+        val leaveTime = json.getLongValue("leave_time")
         val timeLen = leaveTime - startTime
         val userIp = json.getString("user_ip")
-        GamePlay(gameId, userId, startTime,leaveTime, timeLen, userIp)
+        GamePlay(gameId, userId, startTime,leaveTime, timeLen.toInt, userIp)
       })
 
     val gamePlayCountStream = etlSteam

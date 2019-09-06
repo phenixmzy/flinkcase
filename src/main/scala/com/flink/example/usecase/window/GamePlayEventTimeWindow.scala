@@ -92,7 +92,7 @@ object GamePlayEventTimeWindow {
         val currTimeStamp = System.currentTimeMillis()/1000
         val delay = delayRand.nextInt(300)
         val timeLen = playTimeLenRand.nextInt(300)
-        val leaveTime = currTimeStamp.toInt - delay;
+        val leaveTime = currTimeStamp - delay;
         val startTime = leaveTime - timeLen
         GamePlay(gameId, userId, startTime, leaveTime,timeLen, "127.0.0.1")
       }
@@ -121,14 +121,14 @@ object GamePlayEventTimeWindow {
         * 1：With Periodic Watermarks：周期性的触发watermark的生成和发送
         * 2：With Punctuated Watermarks：基于某些事件触发watermark的生成和发送
         * */
-      new AssignerWithPeriodicWatermarks[(String, Int, Int, Int)]() {
+      new AssignerWithPeriodicWatermarks[(String, Int, Long, Long)]() {
         var currentMaxtTimestamp: Long = 0L
         private val maxOutOfOrderness = 3500L
         val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
         override def getCurrentWatermark: Watermark = new Watermark(currentMaxtTimestamp - maxOutOfOrderness)
 
-        override def extractTimestamp(t: (String, Int, Int, Int), l: Long): Long = {
+        override def extractTimestamp(t: (String, Int, Long, Long), l: Long): Long = {
           val timeStamp = t._4 * 1000
           currentMaxtTimestamp = Math.max(timeStamp.toLong, currentMaxtTimestamp)
           System.out.println("key:"+t._1+", eventtime:["+t._3+"|"+sdf.format(t._3 * 1000)+"], currentMaxTimestamp:["+currentMaxtTimestamp+"|"+
