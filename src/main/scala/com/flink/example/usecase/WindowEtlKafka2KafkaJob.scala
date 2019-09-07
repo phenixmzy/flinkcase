@@ -75,6 +75,7 @@ object WindowEtlKafka2KafkaJob {
         .window(TumblingEventTimeWindows.of(Time.minutes(10)))
       .aggregate(new GameAvgTime)
       .map(kv => kv.toString)
+
     gameAvgTimeStream.addSink(kafkaProducer)
 
     /*val gameSummaryStream = etlSteam.map(gamePlay => (gamePlay.gameId, gamePlay.timeLen)).keyBy(0)
