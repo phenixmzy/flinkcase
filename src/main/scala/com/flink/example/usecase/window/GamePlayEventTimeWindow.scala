@@ -15,6 +15,8 @@ import org.apache.flink.streaming.api.windowing.time.Time
 import com.alibaba.fastjson.JSON
 import com.flink.example.usecase.CaseUtil.GamePlay
 import com.flink.example.usecase.ParamsAndPropertiesUtil
+import com.flink.example.usecase.assigner.GamePlayAssignerWithPeriodicWatermarks
+import com.flink.example.usecase.source.GamePlaySource
 import com.flink.example.usecase.window.Kafka2KafkaEventTimeWindow.{CHECK_POINT_TIMEOUT, setEvn}
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
@@ -77,37 +79,7 @@ object GamePlayEventTimeWindow {
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
     val windowSize = params.getRequired("window-size").toInt
     import org.apache.flink.api.scala._
-    val sourceStream = env.addSource(new SourceFunction[GamePlay]() {
-      val num = 1000;
-      @Transient lazy val gameIdRand = new Random()
-      @Transient lazy val userIdRand = new Random()
-      @Transient lazy val delayRand = new Random()
-      @Transient lazy val playTimeLenRand = new Random()
-
-      var isRunning:Boolean = true
-
-      def getGamePlay() : GamePlay = {
-        val gameId = gameIdRand.nextInt(100000).toString
-        val userId = userIdRand.nextInt(10000000).toString
-        val currTimeStamp = System.currentTimeMillis()/1000
-        val delay = delayRand.nextInt(300)
-        val timeLen = playTimeLenRand.nextInt(300)
-        val leaveTime = currTimeStamp - delay;
-        val startTime = leaveTime - timeLen
-        GamePlay(gameId, userId, startTime, leaveTime,timeLen, "127.0.0.1")
-      }
-
-      override def run(ctx: SourceContext[GamePlay]) = {
-        while (isRunning) {
-          Thread.sleep(10)
-          for (carId <- 0 until num) {
-            ctx.collect(getGamePlay)
-          }
-        }
-      }
-
-      override def cancel(): Unit = isRunning = false
-    })
+    val sourceStream = env.addSource(new GamePlaySource())
     val gamePlayStream = sourceStream.map(gamePlay => {
 
       val gameId = gamePlay.gameId
@@ -115,27 +87,7 @@ object GamePlayEventTimeWindow {
       val leaveTime = gamePlay.leaveTimeStamp
       val timeLen = gamePlay.timeLen
       (gameId, timeLen, startTime, leaveTime)
-    }).assignTimestampsAndWatermarks(
-      /**
-        * watermarks的生成方式有两种
-        * 1：With Periodic Watermarks：周期性的触发watermark的生成和发送
-        * 2：With Punctuated Watermarks：基于某些事件触发watermark的生成和发送
-        * */
-      new AssignerWithPeriodicWatermarks[(String, Int, Long, Long)]() {
-        var currentMaxtTimestamp: Long = 0L
-        private val maxOutOfOrderness = 3500L
-        val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-
-        override def getCurrentWatermark: Watermark = new Watermark(currentMaxtTimestamp - maxOutOfOrderness)
-
-        override def extractTimestamp(t: (String, Int, Long, Long), l: Long): Long = {
-          val timeStamp = t._4 * 1000
-          currentMaxtTimestamp = Math.max(timeStamp.toLong, currentMaxtTimestamp)
-          System.out.println("key:"+t._1+", eventtime:["+t._3+"|"+sdf.format(t._3 * 1000)+"], currentMaxTimestamp:["+currentMaxtTimestamp+"|"+
-            sdf.format(currentMaxtTimestamp )+"], watermark:["+getCurrentWatermark().getTimestamp() + "|"+sdf.format(getCurrentWatermark().getTimestamp())+"]");
-          timeStamp
-        }
-      }).map(item => (item._1, item._2))
+    }).assignTimestampsAndWatermarks(new GamePlayAssignerWithPeriodicWatermarks()).map(item => (item._1, item._2))
 
     if (isNoKey.equals("nokey")) {
       gamePlayStream.timeWindowAll(Time.of(windowSize,SECONDS), Time.of(windowSize, SECONDS))

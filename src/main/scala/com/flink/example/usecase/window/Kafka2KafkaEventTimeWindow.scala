@@ -13,6 +13,7 @@ import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.windowing.time.Time
 import com.alibaba.fastjson.JSON
 import com.flink.example.usecase.ParamsAndPropertiesUtil
+import com.flink.example.usecase.assigner.GamePlayAssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.watermark.Watermark
 
 object Kafka2KafkaEventTimeWindow {
@@ -79,34 +80,14 @@ object Kafka2KafkaEventTimeWindow {
     val gamePlayStream = sourceStream.map(jsonContent => {
       val json = JSON.parseObject(jsonContent)
       val gameId = json.getString("game_id")
-      val startTime = json.getIntValue("start_time")
-      val leaveTime = json.getIntValue("leave_time")
+      val startTime = json.getLongValue("start_time")
+      val leaveTime = json.getLongValue("leave_time")
       val timeLen = leaveTime - startTime
-      (gameId, timeLen, startTime)
-    }).assignTimestampsAndWatermarks(
-      /**
-        * watermarks的生成方式有两种
-        * 1：With Periodic Watermarks：周期性的触发watermark的生成和发送
-        * 2：With Punctuated Watermarks：基于某些事件触发watermark的生成和发送
-        * */
-      new AssignerWithPeriodicWatermarks[(String, Int, Int)]() {
-      var currentMaxtTimestamp: Long = 0L
-      private val maxOutOfOrderness = 3500L
-      val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-
-      override def getCurrentWatermark: Watermark = new Watermark(currentMaxtTimestamp - maxOutOfOrderness)
-
-      override def extractTimestamp(t: (String, Int, Int), l: Long): Long = {
-        val timeStamp = t._3 * 1000
-        currentMaxtTimestamp = Math.max(timeStamp.toLong, currentMaxtTimestamp)
-        System.out.println("key:"+t._1+", eventtime:["+t._3+"|"+sdf.format(t._3 * 1000)+"], currentMaxTimestamp:["+currentMaxtTimestamp+"|"+
-          sdf.format(currentMaxtTimestamp )+"], watermark:["+getCurrentWatermark().getTimestamp() + "|"+sdf.format(getCurrentWatermark().getTimestamp())+"]");
-        timeStamp
-      }
-    }).map(item => (item._1, item._2))
+      (gameId, timeLen.toInt, startTime, leaveTime)
+    }).assignTimestampsAndWatermarks(new GamePlayAssignerWithPeriodicWatermarks()).map(item => (item._1, item._2))
 
     if (isNoKey.equals("nokey")) {
-      gamePlayStream.timeWindowAll(Time.minutes(5), Time.minutes(5))
+      gamePlayStream.timeWindowAll(Time.minutes(5))
         .reduce((value1, value2) => (value1._1, value1._2 + value2._2))
         .map(item => "noKey-"+item.toString())
         .addSink(kafkaProducer)
