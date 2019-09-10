@@ -12,7 +12,7 @@ import org.apache.flink.streaming.api.watermark.Watermark
   * */
 class GamePlayAssignerWithPeriodicWatermarks extends AssignerWithPeriodicWatermarks[(String, Int, Long, Long)]{
   var currentMaxtTimestamp: Long = 0L
-  private val maxOutOfOrderness = 3500L
+  private val maxOutOfOrderness = 600*1000L
   val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
   override def getCurrentWatermark: Watermark = new Watermark(currentMaxtTimestamp - maxOutOfOrderness)

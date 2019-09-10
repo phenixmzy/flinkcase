@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction
 
 import scala.util.Random
 
-class GamePlaySource extends SourceFunction[GamePlay]{
+class GamePlaySource extends SourceFunction[GamePlay] {
   val num = 1000;
   var isRunning:Boolean = true
 

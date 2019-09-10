@@ -74,15 +74,14 @@ object GamePlayEventTimeWindow {
 
     val outputTopic = params.getRequired("output-topic")
     val isNoKey = params.getRequired("is-nokey")
-    val taskNum  = params.getRequired("task-num ").toInt
 
     val env = setEvn(params)
+    val taskNum = params.getRequired("task-num").toInt
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
     val windowSize = params.getRequired("window-size").toInt
     import org.apache.flink.api.scala._
-    val sourceStream = env.addSource(new GamePlaySource()).setParallelism(taskNum)
+    val sourceStream = env.addSource(new GamePlaySource())
     val gamePlayStream = sourceStream.map(gamePlay => {
-
       val gameId = gamePlay.gameId
       val startTime = gamePlay.startTimeStamp
       val leaveTime = gamePlay.leaveTimeStamp
