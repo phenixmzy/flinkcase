@@ -30,6 +30,21 @@ class GamePlaySource extends SourceFunction[GamePlay]{
   }
 
   def getGamePlay() : GamePlay = {
+    val gameId = getRandNum(1, 100000)
+    val userId = getRandNum(1, 10000000)
+    val currTimeStamp = System.currentTimeMillis()/1000
+    val delay = getRandNum(1, 300)
+    val timeLen = getRandNum(1, 300)
+    val leaveTime = currTimeStamp - delay;
+    val startTime = leaveTime - timeLen
+    GamePlay(gameId.toString, userId.toString, startTime, leaveTime,timeLen, "127.0.0.1")
+  }
+
+  def getRandNum(min: Int, max: Int) = {
+    (Math.random()*(max-min)+min).toInt
+  }
+
+  def getGamePlayRand() : GamePlay = {
     val gameId = gameIdRand.nextInt(100000).toString
     val userId = userIdRand.nextInt(10000000).toString
     val currTimeStamp = System.currentTimeMillis()/1000
