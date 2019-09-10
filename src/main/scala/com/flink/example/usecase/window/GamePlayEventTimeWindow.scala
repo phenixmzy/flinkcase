@@ -62,9 +62,9 @@ object GamePlayEventTimeWindow {
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
     ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
-    if (params.getNumberOfParameters < 4) {
+    if (params.getNumberOfParameters < 5) {
       println("Missing parameters!\n"
-        + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic> --task-num <num> --window-size <window-size>"
+        + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic> --task-num <num> --window-size <window-size> --is-nokey <nokey>"
       )
       println("params.getNumberOfParameters=" + params.getNumberOfParameters)
       return
@@ -138,7 +138,7 @@ object GamePlayEventTimeWindow {
       }).map(item => (item._1, item._2))
 
     if (isNoKey.equals("nokey")) {
-      gamePlayStream.timeWindowAll(Time.minutes(5), Time.minutes(5))
+      gamePlayStream.timeWindowAll(Time.of(windowSize,SECONDS), Time.of(windowSize, SECONDS))
         .reduce((value1, value2) => (value1._1, value1._2 + value2._2))
         .map(item => "noKey-"+item.toString())
         .addSink(kafkaProducer)
