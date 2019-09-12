@@ -10,19 +10,11 @@ import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.windowing.time.Time
-import com.alibaba.fastjson.JSON
-import com.flink.example.usecase.CaseUtil.GamePlay
+
 import com.flink.example.usecase.ParamsAndPropertiesUtil
 import com.flink.example.usecase.assigner.GamePlayAssignerWithPeriodicWatermarks
 import com.flink.example.usecase.source.GamePlaySource
-import com.flink.example.usecase.window.Kafka2KafkaEventTimeWindow.{CHECK_POINT_TIMEOUT, setEvn}
-import org.apache.flink.streaming.api.functions.source.SourceFunction
-import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
-import org.apache.flink.streaming.api.watermark.Watermark
-
-import scala.util.Random
 
 object GamePlayEventTimeWindow {
   val ONE_SECONDS = 1000L
