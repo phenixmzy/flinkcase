@@ -12,14 +12,11 @@ import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, Flink
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.windowing.time.Time
 import com.alibaba.fastjson.JSON
-import com.flink.example.usecase.ParamsAndPropertiesUtil
+import com.flink.example.usecase.{FlinkEnvUtil, ParamsAndPropertiesUtil}
 import com.flink.example.usecase.assigner.GamePlayAssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.watermark.Watermark
 
 object Kafka2KafkaEventTimeWindow {
-  val ONE_SECONDS = 1000L
-  val ONE_MIN = 60 * ONE_SECONDS
-  val CHECK_POINT_TIMEOUT = 10 * ONE_MIN
 
   def setEvn(params: ParameterTool): StreamExecutionEnvironment = {
     val taskNum = params.getRequired("task-num").toInt
@@ -36,8 +33,8 @@ object Kafka2KafkaEventTimeWindow {
     env.getConfig.setRestartStrategy(RestartStrategies.fixedDelayRestart(4, 10000))
 
     // create a checkpoint every 5 min
-    env.enableCheckpointing(1 * ONE_MIN)
-    env.getCheckpointConfig.setCheckpointTimeout(CHECK_POINT_TIMEOUT)
+    env.enableCheckpointing(FlinkEnvUtil.getCheckPointInteravlMin(1))
+    env.getCheckpointConfig.setCheckpointTimeout(FlinkEnvUtil.getCheckPointTimeOutMin(10))
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
 
     // make parameters available in the web interface
