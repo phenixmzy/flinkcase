@@ -1,20 +1,15 @@
 package com.flink.example.usecase.source
 
-import java.beans.Transient
-
 import com.flink.example.usecase.CaseUtil.GamePlay
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 
-import scala.util.Random
-
-class GamePlaySource extends SourceFunction[GamePlay] {
-  val num = 1000;
+class GamePlaySource(val dataTimes: Int) extends SourceFunction[GamePlay] {
+  val num = dataTimes;
   var isRunning:Boolean = true
-
-  @Transient lazy val gameIdRand = new Random()
-  @Transient lazy val userIdRand = new Random()
-  @Transient lazy val delayRand = new Random()
-  @Transient lazy val playTimeLenRand = new Random()
+  val gameTypes = Array[String]("exe", "web", "online", "flash")
+  val channelFroms = Array[String]("my","category", "game_helper", "recommend", "762", "4399", "relateflash", "kuwo")
+  val sites = Array[String]("index", "kw", "qvod", "baidu", "tx", "kugo")
+  val ips = Array[String]("192.168.1.10","192.168.1.123","192.168.1.125","192.168.1.161","192.168.1.181","192.168.1.183","192.168.1.190","192.168.1.192","192.168.1.198","192.168.1.210")
 
   override def run(sourceContext: SourceFunction.SourceContext[GamePlay]): Unit = {
     while (isRunning) {
@@ -30,28 +25,21 @@ class GamePlaySource extends SourceFunction[GamePlay] {
   }
 
   def getGamePlay() : GamePlay = {
-    val gameId = getRandNum(1, 100000)
-    val userId = getRandNum(1, 10000000)
+    val gameId = ((Math.random()*9+1)*10000).toInt
+    val userId = ((Math.random()*9+1)*10000000).toInt
     val currTimeStamp = System.currentTimeMillis()/1000
     val delay = getRandNum(1, 300)
     val timeLen = getRandNum(1, 300)
     val leaveTime = currTimeStamp - delay;
     val startTime = leaveTime - timeLen
-    GamePlay(gameId.toString, userId.toString, startTime, leaveTime,timeLen, "127.0.0.1")
+    val gameType = gameTypes(getRandNum(0,4) % 4)
+    val channelFrom = channelFroms(getRandNum(0,8) % 8)
+    val site = sites(getRandNum(0,6) % 6)
+    val userIp = ips(getRandNum(0,10) % 10)
+    GamePlay(gameId.toString, userId.toString, startTime, leaveTime,timeLen, userIp, gameType, channelFrom, site)
   }
 
   def getRandNum(min: Int, max: Int) = {
     (Math.random()*(max-min)+min).toInt
-  }
-
-  def getGamePlayRand() : GamePlay = {
-    val gameId = gameIdRand.nextInt(100000).toString
-    val userId = userIdRand.nextInt(10000000).toString
-    val currTimeStamp = System.currentTimeMillis()/1000
-    val delay = delayRand.nextInt(300)
-    val timeLen = playTimeLenRand.nextInt(300)
-    val leaveTime = currTimeStamp - delay;
-    val startTime = leaveTime - timeLen
-    GamePlay(gameId, userId, startTime, leaveTime,timeLen, "127.0.0.1")
   }
 }

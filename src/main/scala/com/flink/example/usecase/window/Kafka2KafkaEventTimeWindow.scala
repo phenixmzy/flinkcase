@@ -12,39 +12,11 @@ import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, Flink
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.windowing.time.Time
 import com.alibaba.fastjson.JSON
-import com.flink.example.usecase.{FlinkEnvUtil, ParamsAndPropertiesUtil}
+import com.flink.example.usecase.{CommonEnv, FlinkEnvUtil, ParamsAndPropertiesUtil}
 import com.flink.example.usecase.assigner.GamePlayAssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.watermark.Watermark
 
 object Kafka2KafkaEventTimeWindow {
-
-  def setEvn(params: ParameterTool): StreamExecutionEnvironment = {
-    val taskNum = params.getRequired("task-num").toInt
-
-    // set up the streaming execution environment
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
-    /**
-      * 这个case使用事件时间.
-      * */
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-
-    env.getConfig.disableSysoutLogging()
-    env.getConfig.setRestartStrategy(RestartStrategies.fixedDelayRestart(4, 10000))
-
-    // create a checkpoint every 5 min
-    env.enableCheckpointing(FlinkEnvUtil.getCheckPointInteravlMin(1))
-    env.getCheckpointConfig.setCheckpointTimeout(FlinkEnvUtil.getCheckPointTimeOutMin(10))
-    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
-
-    // make parameters available in the web interface
-    env.getConfig.setGlobalJobParameters(params)
-    env.setParallelism(taskNum)
-
-    //Controlling Latency
-    //env.setBufferTimeout(100)
-    env
-  }
 
   def main(args: Array[String]) : Unit = {
     executor(args)
@@ -68,7 +40,9 @@ object Kafka2KafkaEventTimeWindow {
     //val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
     //val sourceStream = env.addSource(kafkaConsumer)
 
-    val env = setEvn(params)
+    val env = CommonEnv.setEvn(params)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+
     val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, params.getProperties)
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
 
