@@ -7,7 +7,6 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 
 object CommonEnv {
   def setEvn(params: ParameterTool): StreamExecutionEnvironment = {
-    val taskNum = params.getRequired("task-num").toInt
 
     // set up the streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
@@ -22,7 +21,6 @@ object CommonEnv {
 
     // make parameters available in the web interface
     env.getConfig.setGlobalJobParameters(params)
-    env.setParallelism(taskNum)
 
     //Controlling Latency
     //env.setBufferTimeout(100)

@@ -28,8 +28,7 @@ object EtlKafka2KafkaJob {
     val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, kafkaProperties)
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaProperties)
 
-    val sourceStream = env.addSource(kafkaConsumer)
-                        .addSink(kafkaProducer)
+    val sourceStream = env.addSource(kafkaConsumer).addSink(kafkaProducer)
     // execute program
     env.execute("DataCollect-GamePlay")
   }
