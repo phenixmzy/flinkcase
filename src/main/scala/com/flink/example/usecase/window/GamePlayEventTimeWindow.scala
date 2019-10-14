@@ -44,7 +44,7 @@ object GamePlayEventTimeWindow {
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaProperties)
 
     import org.apache.flink.api.scala._
-    val sourceStream = env.addSource(kafkaConsumer).uid("kafka-source")
+    val sourceStream = env.addSource(kafkaConsumer).name("kafka-source")
     val gamePlayStream = sourceStream.map(gamePlayJsonLine => {
       val gamePlay : GamePlay = JSON.parseObject(gamePlayJsonLine, classOf[GamePlay])
       gamePlay

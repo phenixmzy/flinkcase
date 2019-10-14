@@ -19,7 +19,7 @@ object ParamsAndPropertiesUtil {
     params.getProperties.put(ProducerConfig.BATCH_SIZE_CONFIG,"200000")
     params.getProperties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, "60000")
     params.getProperties.put(ProducerConfig.LINGER_MS_CONFIG, "100")
-    params.getProperties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "lz4")
+    //params.getProperties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "lz4")
 
     params.getProperties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG,"524288000")
     params.getProperties.put(ProducerConfig.MAX_BLOCK_MS_CONFIG,"134217728")
