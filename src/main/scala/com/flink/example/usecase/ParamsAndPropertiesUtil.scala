@@ -27,8 +27,11 @@ object ParamsAndPropertiesUtil {
     kafkaProperties.put(ProducerConfig.SEND_BUFFER_CONFIG,"134217728")
     kafkaProperties.put(ProducerConfig.BUFFER_MEMORY_CONFIG,"134217728")
 
+    /*
+    Caused by: org.apache.kafka.common.errors.SerializationException: Can't convert value of class [B to class org.apache.kafka.common.serialization.StringSerializer specified in value.serializer
     kafkaProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     kafkaProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    */
 
     kafkaProperties.put("bootstrap.servers", params.getRequired("bootstrap.servers"))
 
