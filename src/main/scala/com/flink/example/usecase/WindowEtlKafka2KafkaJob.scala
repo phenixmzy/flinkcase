@@ -12,28 +12,12 @@ import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindo
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.table.functions.AggregateFunction
 
-
 object WindowEtlKafka2KafkaJob {
-  val ONE_SECONDS = 1000L
-  val ONE_MIN = 60 * ONE_SECONDS
-  val CHECK_POINT_TIMEOUT = 10 * ONE_MIN
-
-  def setEvn(params: ParameterTool): StreamExecutionEnvironment = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.getCheckpointConfig.setCheckpointTimeout(ONE_MIN * 3)
-    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
-    env.enableCheckpointing(ONE_MIN)
-
-    val taskNum = params.getRequired("task-num").toInt
-    env.getConfig.setParallelism(taskNum)
-    env.getConfig.setGlobalJobParameters(params)
-
-    return env
-  }
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+
     if (params.getNumberOfParameters < 6) {
       println("Missing parameters!\n"
         + "Usage: Kafka --input-topic <topic> --bootstrap.servers <kafka brokers> --group.id <some id> " +
@@ -42,12 +26,12 @@ object WindowEtlKafka2KafkaJob {
       return
     }
 
-    val env = setEvn(params)
+    val env = CommonEnv.setEvn(params)
 
     val inTopic = params.getRequired("input-topic")
     val outTopic = params.getRequired("out-topic")
-    val kafkaConsumer = new FlinkKafkaConsumer011(inTopic, new SimpleStringSchema, params.getProperties)
-    val kafkaProducer = new FlinkKafkaProducer011(outTopic, new SimpleStringSchema, params.getProperties)
+    val kafkaConsumer = new FlinkKafkaConsumer011(inTopic, new SimpleStringSchema, kafkaProperties)
+    val kafkaProducer = new FlinkKafkaProducer011(outTopic, new SimpleStringSchema, kafkaProperties)
 
     import org.apache.flink.api.scala._
     val etlSteam = env.addSource(kafkaConsumer)

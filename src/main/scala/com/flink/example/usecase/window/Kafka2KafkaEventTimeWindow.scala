@@ -24,7 +24,7 @@ object Kafka2KafkaEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
     if (params.getNumberOfParameters < 6) {
       println("Missing parameters!\n"
         + "Usage: Kafka --input-topic <topic> --bootstrap.servers <kafka brokers> --group.id <some id> " +
@@ -43,8 +43,8 @@ object Kafka2KafkaEventTimeWindow {
     val env = CommonEnv.setEvn(params)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
-    val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, params.getProperties)
-    val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
+    val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, kafkaProperties)
+    val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaProperties)
 
     import org.apache.flink.api.scala._
     val sourceStream = env.addSource(kafkaConsumer)

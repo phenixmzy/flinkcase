@@ -12,6 +12,8 @@ object ParamsAndPropertiesUtil {
     params.getProperties.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG,"524288000")
     params.getProperties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,"60000")
     params.getProperties.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG,"100000")
+    params.getProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, params.getRequired("bootstrap.servers"))
+//    params.getProperties.put(ConsumerConfig.GROUP_ID_CONFIG, params.get("group.id"))
 
     // config producer
     params.getProperties.put(ProducerConfig.BATCH_SIZE_CONFIG,"200000")
@@ -24,16 +26,13 @@ object ParamsAndPropertiesUtil {
     params.getProperties.put(ProducerConfig.SEND_BUFFER_CONFIG,"134217728")
     params.getProperties.put(ProducerConfig.BUFFER_MEMORY_CONFIG,"134217728")
 
-    // config other
+    params.getProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    params.getProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     //params.getProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
     //params.getProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
 
-    params.getProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    params.getProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-
     params.getProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, params.getRequired("bootstrap.servers"))
-    params.getProperties.put(ConsumerConfig.GROUP_ID_CONFIG, params.get("group.id"))
 
-    System.out.println("params.getProperties=" + params.getProperties.size())
+    params.getProperties
   }
 }

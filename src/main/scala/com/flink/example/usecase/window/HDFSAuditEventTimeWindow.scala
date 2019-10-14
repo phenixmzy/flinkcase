@@ -14,7 +14,7 @@ object HDFSAuditEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
     if (params.getNumberOfParameters < 5) {
       println("Missing parameters!\n"
         + "Usage: Kafka --bootstrap.servers <kafka brokers> --input-topic <input-topic> --output-topic <output-topic> --task-num <num> --window-size <window-size>"
@@ -29,8 +29,8 @@ object HDFSAuditEventTimeWindow {
     val env = CommonEnv.setEvn(params)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
-    val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, params.getProperties)
-    val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, params.getProperties)
+    val kafkaConsumer = new FlinkKafkaConsumer011(inputTopic, new SimpleStringSchema, kafkaProperties)
+    val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaProperties)
     val windowSize = params.getRequired("window-size").toInt
     import org.apache.flink.api.scala._
     val hdfsAuditStream = env.addSource(kafkaConsumer)
