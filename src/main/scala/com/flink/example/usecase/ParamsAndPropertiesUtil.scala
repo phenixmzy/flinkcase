@@ -7,7 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 
 object ParamsAndPropertiesUtil {
-  def loadKafkaParamsAndProperties(params: ParameterTool) = {
+  def loadKafkaCommonProperties(params: ParameterTool) = {
     // config consumer
     params.getProperties.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG,"524288000")
     params.getProperties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,"60000")

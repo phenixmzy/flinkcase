@@ -16,7 +16,7 @@ object WindowEtlKafka2KafkaJob {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaCommonProperties(params)
 
     if (params.getNumberOfParameters < 6) {
       println("Missing parameters!\n"

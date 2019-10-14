@@ -17,10 +17,10 @@ object CreateDataGamePlayJob {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
-    if (params.getNumberOfParameters < 4) {
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaCommonProperties(params)
+    if (params.getNumberOfParameters < 3) {
       println("Missing parameters!\n"
-        + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic> --task-num <num> --data-times <num> "
+        + "Usage: Kafka --bootstrap.servers <kafka brokers> --output-topic <topic>  --data-times <num> "
       )
       println("params.getNumberOfParameters=" + params.getNumberOfParameters)
       return
@@ -30,10 +30,10 @@ object CreateDataGamePlayJob {
     val env = CommonEnv.setEvn(params)
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaProperties)
     import org.apache.flink.api.scala._
-    val sourceStream = env.addSource(new GamePlaySource(dataTimes))
+    val sourceStream = env.addSource(new GamePlaySource(dataTimes)).name("Make GamePlay Data").uid("Make GamePlay Data")
     val gamePlayStream = sourceStream.map(gamePlay => {
       JSON.toJSONString(gamePlay, SerializerFeature.WriteMapNullValue)
-    }).addSink(kafkaProducer)
-    env.execute()
+    }).name("Bean To Json Str").uid("Bean To Json Str").print()
+    env.execute("Create Data GamePlay Job")
   }
 }

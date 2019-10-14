@@ -14,7 +14,7 @@ object HDFSAuditEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaCommonProperties(params)
     if (params.getNumberOfParameters < 5) {
       println("Missing parameters!\n"
         + "Usage: Kafka --bootstrap.servers <kafka brokers> --input-topic <input-topic> --output-topic <output-topic> --task-num <num> --window-size <window-size>"

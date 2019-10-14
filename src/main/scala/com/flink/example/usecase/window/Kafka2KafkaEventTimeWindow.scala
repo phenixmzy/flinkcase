@@ -24,7 +24,7 @@ object Kafka2KafkaEventTimeWindow {
 
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
-    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaParamsAndProperties(params)
+    val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaCommonProperties(params)
     if (params.getNumberOfParameters < 6) {
       println("Missing parameters!\n"
         + "Usage: Kafka --input-topic <topic> --bootstrap.servers <kafka brokers> --group.id <some id> " +
