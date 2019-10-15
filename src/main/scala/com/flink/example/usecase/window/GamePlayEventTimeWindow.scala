@@ -13,8 +13,17 @@ import com.flink.example.usecase.assigner.{GamePlayAssignerWithPeriodicWatermark
 import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.serializer.SerializerFeature
 import com.flink.example.usecase.CaseUtil.GamePlay
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+
+class GamePlayEventTimeWindow {
+}
 
 object GamePlayEventTimeWindow {
+  val logger = LoggerFactory.getLogger(classOf[GamePlayEventTimeWindow])
 
 
   def main(args: Array[String]) : Unit = {
@@ -24,11 +33,11 @@ object GamePlayEventTimeWindow {
   def executor(args: Array[String]): Unit = {
     val params = ParameterTool.fromArgs(args)
     val kafkaProperties = ParamsAndPropertiesUtil.loadKafkaCommonProperties(params)
+    logger.info("=========================== kafkaProperties.size:" + kafkaProperties.size())
     if (params.getNumberOfParameters < 5) {
       println("Missing parameters!\n"
-        + "Usage: Kafka --bootstrap.servers <kafka brokers> --input-topic <input-topic> --output-topic <output-topic> --task-num <num> --window-size <window-size>"
+        + "Usage: Kafka --bootstrap.servers <kafka brokers> --zookeeper.connect <zookeeper.connect> --input-topic <input-topic> --output-topic <output-topic> --task-num <num> --window-size <window-size>"
       )
-      println("params.getNumberOfParameters=" + params.getNumberOfParameters)
       return
     }
     val inputTopic = params.getRequired("input-topic")
@@ -44,16 +53,15 @@ object GamePlayEventTimeWindow {
     val kafkaProducer = new FlinkKafkaProducer011(outputTopic, new SimpleStringSchema, kafkaProperties)
 
     import org.apache.flink.api.scala._
+    implicit val formats = DefaultFormats
     val sourceStream = env.addSource(kafkaConsumer).name("kafka-source")
     val gamePlayStream = sourceStream.map(gamePlayJsonLine => {
-      val gamePlay : GamePlay = JSON.parseObject(gamePlayJsonLine, classOf[GamePlay])
+      val gamePlay = parse(gamePlayJsonLine).extract[GamePlay]
       gamePlay
-    }).name("gameplay-instance")
-     .map(gamePlay => {
-        val map = Map("game_id" -> gamePlay.gameId, "gameplay_type" -> gamePlay.gameType, "user_id" -> gamePlay.uid)
-        JSON.toJSONString(map, SerializerFeature.WriteMapNullValue)
-      }).name("output-gameplay-json")
-     .addSink(kafkaProducer).name("kafka-sink")
+    }).map(gamePlay => {
+      val map = Map("game_id" -> gamePlay.gameId, "gameplay_type" -> gamePlay.gameType, "user_id" -> gamePlay.uid)
+      JSON.toJSONString(map, SerializerFeature.WriteMapNullValue)
+    }).addSink(kafkaProducer).name("kafka-sink")
 
 
     /* .assignTimestampsAndWatermarks(new GamePlayBeanAssignerWithPeriodicWatermarks()).setParallelism(taskNum)
@@ -68,6 +76,6 @@ object GamePlayEventTimeWindow {
         JSON.toJSONString(map, SerializerFeature.WriteMapNullValue)
       }).addSink(kafkaProducer)
       */
-    env.execute("gameplay event time window")
+    env.execute("game play event time window")
   }
 }
